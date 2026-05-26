@@ -3,316 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>スト6 全期間統合対戦ダイヤグラム & 被対策ツール</title>
+    <title>スト6 手札補正付き・対面被せ分析ボード</title>
     <style>
         /* --- 全体基本スタイル --- */
-        body {
-            background-color: #121212;
-            color: #e0e0e0;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            margin: 0;
-            padding: 15px;
-        }
-        .container {
-            max-width: 100%;
-            margin: 0 auto;
-            background: #1e1e1e;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-        }
-        header {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 15px;
-            margin-bottom: 15px;
-        }
-        @media (min-width: 768px) {
-            header {
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: center;
-            }
-        }
-        h1 {
-            font-size: 20px;
-            margin: 0;
-            color: #fff;
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        body { background-color: #0f111a; color: #e2e8f0; font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 15px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 { font-size: 20px; color: #fff; margin-bottom: 5px; display: flex; align-items: center; gap: 10px; }
         @media (min-width: 768px) { h1 { font-size: 24px; } }
-        h1::before {
-            content: '';
-            display: inline-block;
-            width: 6px;
-            height: 22px;
-            background: #ffcc00;
-            border-radius: 2px;
-        }
-        .subtitle {
-            font-size: 12px;
-            color: #888;
-            margin-top: 5px;
-        }
+        h1::before { content: ''; display: inline-block; width: 6px; height: 24px; background: #0070f3; border-radius: 2px; }
+        .subtitle { color: #718096; font-size: 13px; margin-bottom: 25px; }
         
-        /* --- キャラクター検索・抽出パネル --- */
-        .search-panel {
-            background: #151515;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        .search-title {
-            font-size: 14px;
-            font-weight: bold;
-            color: #ffcc00;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .search-select {
-            width: 100%;
-            max-width: 400px;
-            padding: 10px;
-            background: #252525;
-            color: #fff;
-            border: 1px solid #444;
-            border-radius: 6px;
-            font-size: 14px;
-            outline: none;
-            cursor: pointer;
-        }
-        .search-select:focus {
-            border-color: #0070f3;
-        }
+        /* 検索・抽出パネル */
+        .search-panel { background: #151515; border: 1px solid #333; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        .search-title { font-size: 14px; font-weight: bold; color: #ffcc00; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .search-select { width: 100%; max-width: 400px; padding: 10px; background: #252525; color: #fff; border: 1px solid #444; border-radius: 6px; font-size: 14px; outline: none; cursor: pointer; }
+        .search-select:focus { border-color: #0070f3; }
         
-        .result-container {
-            margin-top: 15px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 8px;
-            max-height: 260px;
-            overflow-y: auto;
-            padding-right: 5px;
-        }
-        .result-card {
-            background: #222;
-            border: 1px solid #2d2d2d;
-            border-radius: 6px;
-            padding: 8px 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 12px;
-        }
-        .result-char-name {
-            font-weight: bold;
-            color: #aaa;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .result-rate-val {
-            font-family: monospace;
-            font-weight: bold;
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
+        .result-container { margin-top: 15px; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; max-height: 260px; overflow-y: auto; padding-right: 5px; }
+        .result-card { background: #222; border: 1px solid #2d2d2d; border-radius: 6px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+        .result-char-name { font-weight: bold; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .result-rate-val { font-family: monospace; font-weight: bold; padding: 2px 6px; border-radius: 4px; }
 
-        /* --- 持ちキャラ（手札）設定＆分析パネル --- */
-        .analyze-panel {
-            background: #191d24;
-            border: 1px solid #2b3545;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        .hand-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 10px;
-            margin-bottom: 15px;
-            max-height: 250px;
-            overflow-y: auto;
-            padding: 5px;
-            background: #111;
-            border-radius: 6px;
-        }
-        .char-box {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #222;
-            padding: 6px 10px;
-            border-radius: 4px;
-            border: 1px solid #333;
-        }
-        .char-label {
-            font-size: 12px;
-            font-weight: bold;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .radio-group {
-            display: flex;
-            gap: 2px;
-        }
-        .radio-btn {
-            font-size: 10px;
-            padding: 3px 6px;
-            background: #333;
-            color: #bbb;
-            cursor: pointer;
-            border-radius: 3px;
-            user-select: none;
-        }
+        /* キャラ設定パネル */
+        .panel { background: #1a202c; border: 1px solid #2d3748; border-radius: 8px; padding: 15px; margin-bottom: 25px; }
+        .panel-title { font-size: 15px; font-weight: bold; margin-bottom: 12px; color: #0070f3; }
+        
+        .char-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-bottom: 10px; max-height: 280px; overflow-y: auto; padding-right: 5px; }
+        @media (min-width: 768px) { .char-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); max-height: none; } }
+        .char-box { background: #232936; padding: 8px; border-radius: 6px; border: 1px solid #2d3748; display: flex; flex-direction: column; gap: 5px; }
+        .char-name-label { font-weight: bold; font-size: 13px; color: #fff; margin-bottom: 2px; text-align: center; border-bottom: 1px solid #2d3748; padding-bottom: 3px;}
+        .radio-group { display: flex; justify-content: space-between; gap: 3px; }
+        
+        .radio-btn { flex: 1; text-align: center; font-size: 11px; padding: 5px 0; background: #1a202c; border-radius: 3px; cursor: pointer; user-select: none; border: 1px solid transparent; color: #718096; transition: all 0.2s; }
         .radio-btn input { display: none; }
-        .radio-btn.active-none { background: #444; color: #fff; }
-        .radio-btn.active-main { background: #d97706; color: #fff; font-weight: bold; }
-        .radio-btn.active-sub { background: #2563eb; color: #fff; font-weight: bold; }
-
-        /* 分析結果スタイル */
-        .analysis-result-wrapper {
-            margin-top: 15px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 10px;
-        }
-        .strategy-card {
-            background: #1f2937;
-            border: 1px solid #374151;
-            border-radius: 6px;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .strategy-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #374151;
-            padding-bottom: 6px;
-        }
-        .opp-name { font-weight: bold; font-size: 14px; color: #fff; }
-        .pick-info { display: flex; align-items: center; gap: 8px; }
-        .best-pick {
-            font-size: 11px;
-            font-weight: bold;
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-        .best-rate { font-family: monospace; font-weight: bold; font-size: 13px; }
-        .strategy-card .reason-text { font-size: 11px; color: #9ca3af; line-height: 1.4; text-align: left; margin-top: 0; }
-
-        /* --- レスポンシブ・テーブル設定 --- */
-        .table-wrapper {
-            overflow-x: auto;
-            overflow-y: auto;
-            max-height: 50vh;
-            border-radius: 8px;
-            border: 1px solid #333;
-            -webkit-overflow-scrolling: touch;
-        }
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            font-size: 11px;
-            text-align: center;
-        }
-        @media (min-width: 768px) { table { font-size: 12px; } }
-
-        th, td {
-            padding: 6px 4px;
-            border-right: 1px solid #2d2d2d;
-            border-bottom: 1px solid #2d2d2d;
-            min-width: 48px;
-            white-space: nowrap;
-            transition: opacity 0.1s ease;
-        }
-        @media (min-width: 768px) {
-            th, td { padding: 8px 6px; min-width: 55px; }
-        }
-        th {
-            background-color: #252525;
-            color: #aaa;
-            font-weight: 600;
-            position: sticky;
-            top: 0;
-            z-index: 3;
-        }
-
-        .row-char {
-            background-color: #252525;
-            color: #fff;
-            text-align: left;
-            font-weight: bold;
-            padding-left: 10px;
-            position: sticky;
-            left: 0;
-            z-index: 5;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.3);
-        }
-        th.row-char { z-index: 10; top: 0; }
-
-        .total-cell {
-            background-color: #2d3748;
-            color: #ffcc00;
-            font-weight: bold;
-            font-size: 11px;
-            position: sticky;
-            left: 65px;
-            z-index: 4;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.2);
-        }
-        @media (min-width: 768px) {
-            .total-cell { font-size: 13px; left: 77px; }
-        }
-        th.total-cell {
-            z-index: 9;
-            top: 0;
-            background-color: #2d3748;
-        }
-
-        tr:hover .row-char { background-color: #333; }
-        tr:hover td { filter: brightness(1.2); cursor: pointer; }
         
-        .legend {
-            display: flex;
-            gap: 10px;
-            font-size: 11px;
-            color: #aaa;
-            justify-content: flex-start;
-        }
-        @media (min-width: 768px) {
-            .legend { justify-content: flex-end; font-size: 12px; gap: 15px; }
-        }
+        .radio-btn.active-none { border-color: #4a5568; color: #a0aec0; background: #2d3748; }
+        .radio-btn.active-main { background: #0070f3; color: #fff; font-weight: bold; }
+        .radio-btn.active-sub { background: #e2b81d; color: #000; font-weight: bold; }
+
+        /* 👥 2カラムグリッドレイアウト（PHP版を完全再現） */
+        .grid-layout { display: grid; grid-template-columns: 1fr; gap: 25px; margin-top: 20px; }
+        @media (min-width: 1100px) { .grid-layout { grid-template-columns: 1fr 480px; } }
+        
+        .section-title { font-size: 17px; font-weight: bold; margin-bottom: 12px; color: #fff; display: flex; align-items: center; gap: 8px; }
+        
+        /* 📱 スマホ用スクロールコンテナ */
+        .table-wrapper { overflow-x: auto; overflow-y: auto; max-height: 70vh; border: 1px solid #2d3748; border-radius: 6px; background: #1a202c; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 11px; text-align: center; }
+        @media (min-width: 768px) { table { font-size: 12px; } }
+        th, td { padding: 8px 6px; border-right: 1px solid #2d3748; border-bottom: 1px solid #2d3748; white-space: nowrap; transition: opacity 0.1s ease; }
+        
+        th { background-color: #232936; color: #a0aec0; position: sticky; top: 0; z-index: 3; }
+        
+        /* 左端（相手キャラ名）固定ロック */
+        .row-char { background-color: #232936; color: #fff; font-weight: bold; text-align: left; padding-left: 12px; position: sticky; left: 0; z-index: 5; box-shadow: 2px 0 4px rgba(0,0,0,0.4); }
+        th.row-char { z-index: 10; top: 0; }
+        
+        /* 推奨選出リスト */
+        .strategy-list { background: #1a202c; border: 1px solid #2d3748; border-radius: 6px; padding: 10px; max-height: 70vh; overflow-y: auto; }
+        .strategy-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 4px; border-bottom: 1px solid #2d3748; }
+        .strategy-item:last-child { border-bottom: none; }
+        .opp-name { font-weight: bold; font-size: 13px; width: 100px; text-align: left; }
+        .arrow { color: #4a5568; font-size: 11px; }
+        
+        .best-pick { color: #fff; padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 12px; min-width: 90px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        
+        .best-rate { font-family: monospace; font-weight: bold; font-size: 13px; width: 55px; text-align: right; }
+        .advantage { color: #48bb78; }
+        .disadvantage { color: #f56565; }
+        .reason-text { font-size: 11px; color: #718096; margin-top: 2px; text-align: right; }
+
+        /* 全体マトリクス用 */
+        #diagramTable table { border-collapse: separate; border-spacing: 0; }
+        #diagramTable th, #diagramTable td { padding: 6px 4px; min-width: 48px; }
+        @media (min-width: 768px) { #diagramTable th, #diagramTable td { padding: 8px 6px; min-width: 55px; } }
+        #diagramTable th { background-color: #252525; color: #aaa; position: sticky; top: 0; z-index: 3; }
+        #diagramTable .row-char { background-color: #252525; left: 0; z-index: 5; box-shadow: 2px 0 5px rgba(0,0,0,0.3); }
+        #diagramTable .total-cell { background-color: #2d3748; color: #ffcc00; position: sticky; left: 65px; z-index: 4; box-shadow: 2px 0 5px rgba(0,0,0,0.2); }
+        @media (min-width: 768px) { #diagramTable .total-cell { left: 77px; } }
+        #diagramTable th.total-cell { z-index: 9; background-color: #2d3748; }
+        #diagramTable tr:hover .row-char { background-color: #333; }
+        #diagramTable tr:hover td { filter: brightness(1.2); cursor: pointer; }
+
+        .legend { display: flex; gap: 10px; font-size: 11px; color: #aaa; justify-content: flex-start; }
+        @media (min-width: 768px) { .legend { justify-content: flex-end; font-size: 12px; gap: 15px; } }
         .legend-item { display: flex; align-items: center; gap: 5px; }
         .box { width: 12px; height: 12px; border-radius: 3px; }
 
-        /* ハイライト用 */
-        .row-char, th:not(:first-child) { cursor: pointer; }
-        .row-char.active-target, th.active-target {
-            background-color: #0070f3 !important;
-            color: #fff !important;
-        }
-        td.active-intersection {
-            outline: 3px solid #ffcc00 !important;
-            outline-offset: -3px;
-            font-weight: bold;
-        }
+        /* クロスハイライト用 */
         table.has-active tr:not(.active-row) td:not(.total-cell) { opacity: 0.2; }
         table.has-active td:not(.active-col):not(.row-char) { opacity: 0.2; }
         table.has-active tr.active-row td.active-col { opacity: 1 !important; filter: brightness(1.2); }
+        td.active-intersection { outline: 3px solid #ffcc00 !important; outline-offset: -3px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -321,7 +103,7 @@
     <header>
         <div>
             <h1>STREET FIGHTER 6 総合対戦ダイヤグラム</h1>
-            <div class="subtitle">※ ローカル完全動作版。手札を設定すると最適な対面対策が出力されます。</div>
+            <div class="subtitle">※ ローカル完全動作版。役割を指定すると左右にPHP版の解析結果がリアルタイム同期出力されます。</div>
         </div>
         <div class="legend">
             <div class="legend-item"><div class="box" style="background: rgba(40, 167, 69, 0.8);"></div> 有利 (5.0+)</div>
@@ -330,11 +112,25 @@
         </div>
     </header>
 
-    <div class="analyze-panel">
-        <div class="search-title">🧠 手札（持ちキャラ）設定 ＆ 自動カウンター分析</div>
-        <div class="hand-grid" id="handGrid"></div>
-        <div class="analysis-result-wrapper" id="analysisResult">
-            <div style="color: #888; font-size: 12px; padding: 10px;">手札に「メイン」または「サブ」のキャラを選択すると、相手ごとの戦略がここにリアルタイムで計算されます。</div>
+    <div class="panel">
+        <div class="panel-title">🥋 キャラクター別の役割設定（手札を4体まで選択してください）</div>
+        <div class="char-grid" id="handGrid"></div>
+    </div>
+
+    <div class="grid-layout" id="analysisDashboard" style="display: none;">
+        <div>
+            <div class="section-title">📊 選択したデッキの相性表</div>
+            <div class="table-wrapper">
+                <table id="deckTable">
+                    <thead id="deckThead"></thead>
+                    <tbody id="deckTbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div>
+            <div class="section-title">🎯 アルゴリズムによる最適選出リスト</div>
+            <div class="strategy-list" id="strategyList"></div>
         </div>
     </div>
 
@@ -346,7 +142,8 @@
         <div class="result-container" id="resultContainer"></div>
     </div>
 
-    <div class="table-wrapper">
+    <div class="table-wrapper" id="diagramTableWrapper">
+        <div class="section-title" style="margin: 10px 0 10px 5px;">🌐 全期間統合総当たり表</div>
         <table id="diagramTable">
             <thead>
                 <tr id="tableHeaderRow"></tr>
@@ -357,7 +154,7 @@
 </div>
 
 <script>
-    // 🌟 【CORS対策】ここに提供されたJSONデータ（sf6.json）の中身を変数として直接直書きします
+    // 🌟 埋め込み用ダイヤグラムデータ
     const matrixData = {
       "MAI": { "Total": 5.1, "MAI": null, "C.VIPER": 5.114, "RASHID": 5.168, "DHALSIM": 4.675, "ELENA": 4.994, "VEGA": 5.106, "SAGAT": 5.066, "CHUN-LI": 5.063, "ALEX": 5.279, "E.HONDA": 5.126, "ED": 5.228, "JP": 5.170, "TERRY": 5.107, "KIMBERLY": 4.865, "ZANGIEF": 4.703, "BLANKA": 5.089, "LILY": 4.867, "CAMMY": 5.054, "DEE JAY": 5.118, "LUKE": 5.261, "MARISA": 5.024, "GUILE": 5.056, "KEN": 5.254, "JURI": 5.288, "RYU": 5.206, "GOUKI": 5.185, "JAMIE": 5.122, "MANON": 5.183, "A.K.I.": 4.978 },
       "C.VIPER": { "Total": 5.053, "MAI": 4.885, "C.VIPER": null, "RASHID": 4.918, "DHALSIM": 5.052, "ELENA": 5.003, "VEGA": 4.829, "SAGAT": 4.967, "CHUN-LI": 5.278, "ALEX": 4.834, "E.HONDA": 4.868, "ED": 5.039, "JP": 4.857, "TERRY": 4.964, "KIMBERLY": 4.794, "ZANGIEF": 5.299, "BLANKA": 4.975, "LILY": 5.173, "CAMMY": 5.195, "DEE JAY": 5.007, "LUKE": 5.213, "MARISA": 5.135, "GUILE": 4.928, "KEN": 5.056, "JURI": 5.093, "RYU": 5.399, "GOUKI": 5.403, "JAMIE": 5.275, "MANON": 4.955, "A.K.I.": 5.126 },
@@ -390,18 +187,22 @@
       "A.K.I.": { "Total": 4.937, "MAI": 5.024, "C.VIPER": 4.869, "RASHID": 4.952, "DHALSIM": 4.879, "ELENA": 4.880, "VEGA": 4.647, "SAGAT": 4.960, "CHUN-LI": 5.016, "ALEX": 4.826, "E.HONDA": 5.077, "ED": 5.147, "JP": 4.683, "TERRY": 4.768, "KIMBERLY": 4.748, "ZANGIEF": 5.034, "BLANKA": 4.872, "LILY": 5.206, "CAMMY": 5.005, "DEE JAY": 5.079, "LUKE": 4.954, "MARISA": 5.048, "GUILE": 4.710, "KEN": 5.010, "JURI": 5.127, "RYU": 5.003, "GOUKI": 4.849, "JAMIE": 4.991, "MANON": 5.063, "A.K.I.": null }
     };
 
+    // リスト順同期用の配列
+    const orderedCharacterList = Object.keys(matrixData);
+
     const table = document.getElementById('diagramTable');
     const headerRow = document.getElementById('tableHeaderRow');
     const tableBody = document.getElementById('tableBody');
     const selector = document.getElementById('charSelector');
     const resultContainer = document.getElementById('resultContainer');
     const handGrid = document.getElementById('handGrid');
-    const analysisResult = document.getElementById('analysisResult');
+    
+    const analysisDashboard = document.getElementById('analysisDashboard');
+    const deckThead = document.getElementById('deckThead');
+    const deckTbody = document.getElementById('deckTbody');
+    const strategyList = document.getElementById('strategyList');
 
-    // オブジェクトのキーから全キャラクターのマスターリストを自動生成
-    const characters = Object.keys(matrixData);
-
-    // 🎨 相性値に合わせた背景色クラススタイル
+    // 🎨 勝率に応じたヒートマップの背景色と文字色を決定する関数
     function getCellVisual(rate) {
         if (rate === null || rate === undefined) return 'background-color: #222; color: #555;';
         const diff = rate - 5.000;
@@ -415,11 +216,23 @@
         return 'background-color: #3a3a3a; color: #fff;';
     }
 
-    // 🏗️ アプリケーションの初期描画ビルド
+    // 🎨 最適選出リストの4色識別バッジ専用のスタイル定義関数
+    function getCharBadgeStyle(index) {
+        const colors = [
+            { hex: '#38bdf8', fg: '#000' }, // 1体目: スカイブルー
+            { hex: '#a855f7', fg: '#fff' }, // 2体目: パープル
+            { hex: '#f97316', fg: '#000' }, // 3体目: オレンジ
+            { hex: '#ec4899', fg: '#fff' }  // 4体目: ピンク
+        ];
+        const color = colors[index] || { hex: '#4a5568', fg: '#fff' };
+        return `background-color: ${color.hex}; color: ${color.fg}; font-weight: bold;`;
+    }
+
+    // 🏗️ アプリケーションの初期ビルド
     function initApp() {
-        // 1. 上ヘッダーとセレクトボックスオプションを生成
+        // 1. 全体表ヘッダー＆個別抽出用セレクトボックス
         headerRow.innerHTML = '<th class="row-char">Character</th><th class="total-cell">Total</th>';
-        characters.forEach(char => {
+        orderedCharacterList.forEach(char => {
             const opt = document.createElement('option');
             opt.value = char;
             opt.textContent = char;
@@ -431,26 +244,23 @@
             headerRow.appendChild(th);
         });
 
-        // 2. マトリクス表の構築
-        characters.forEach(myChar => {
+        // 2. 全体表ボディ
+        orderedCharacterList.forEach(myChar => {
             const tr = document.createElement('tr');
             tr.setAttribute('data-char', myChar);
 
-            // 自キャラ名
             const tdName = document.createElement('td');
             tdName.className = 'row-char';
             tdName.textContent = myChar;
             tr.appendChild(tdName);
 
-            // 総合勝率（Total）
             const tdTotal = document.createElement('td');
             tdTotal.className = 'total-cell';
             const totalVal = matrixData[myChar]['Total'];
             tdTotal.textContent = totalVal !== undefined ? totalVal.toFixed(3) : '-';
             tr.appendChild(tdTotal);
 
-            // 各対面勝率
-            characters.forEach(oppChar => {
+            orderedCharacterList.forEach(oppChar => {
                 const tdRate = document.createElement('td');
                 tdRate.setAttribute('data-opp', oppChar);
 
@@ -468,14 +278,14 @@
             tableBody.appendChild(tr);
         });
 
-        // 3. 持ちキャラ設定のラジオボタングリッドの構築
-        characters.forEach(char => {
+        // 3. 役割設定フォーム用のグリッド
+        orderedCharacterList.forEach(char => {
             const box = document.createElement('div');
             box.className = 'char-box';
             box.innerHTML = `
-                <div class="char-label">${char}</div>
+                <div class="char-name-label">${char}</div>
                 <div class="radio-group">
-                    <label class="radio-btn active-none"><input type="radio" name="role_${char}" value="none" checked>なし</label>
+                    <label class="radio-btn active-none"><input type="radio" name="role_${char}" value="none" checked>未選択</label>
                     <label class="radio-btn"><input type="radio" name="role_${char}" value="main">メイン</label>
                     <label class="radio-btn"><input type="radio" name="role_${char}" value="sub">サブ</label>
                 </div>
@@ -483,15 +293,14 @@
             handGrid.appendChild(box);
         });
 
-        // イベントリスナー登録
         bindEvents();
     }
 
-    // 🔗 UIイベント紐付け
+    // 🔗 各種イベント処理
     function bindEvents() {
         handGrid.addEventListener('change', () => {
             updateRadioStyles();
-            runCounterAnalysis();
+            runPHPStyleAnalysis();
         });
 
         selector.addEventListener('change', (e) => {
@@ -528,33 +337,76 @@
         });
     }
 
-    // 🧠 リアルタイム対面被せ分析（0.1マージンアルゴリズム）
-    function runCounterAnalysis() {
+    // 🧠 PHP版のデザイン・色分け・ロジックを完全再現したリアルタイム分析
+    function runPHPStyleAnalysis() {
         const selectedHand = {};
-        let hasSelection = false;
+        const handOrderList = [];
 
-        characters.forEach(char => {
+        orderedCharacterList.forEach(char => {
             const checkedVal = document.querySelector(`input[name="role_${char}"]:checked`).value;
             if (checkedVal === 'main' || checkedVal === 'sub') {
                 selectedHand[char] = checkedVal;
-                hasSelection = true;
+                handOrderList.push(char);
             }
         });
 
-        if (!hasSelection) {
-            analysisResult.innerHTML = `<div style="color: #888; font-size: 12px; padding: 10px;">手札に「メイン」または「サブ」のキャラを選択すると、相手ごとの戦略がここにリアルタイムで計算されます。</div>`;
+        // 何も選ばれていないときはダッシュボード自体を隠す
+        if (handOrderList.length === 0) {
+            analysisDashboard.style.display = 'none';
             return;
         }
 
-        let html = '';
+        analysisDashboard.style.display = 'grid';
 
-        characters.forEach(oppChar => {
+        // --- 📊 左側：選択したデッキの相性表の生成 ---
+        let theadHtml = `<tr><th class="row-char" style="top: 0; z-index: 10;">相手キャラ</th>`;
+        handOrderList.forEach(myChar => {
+            const role = selectedHand[myChar];
+            theadHtml += `
+                <th>
+                    ${myChar}<br>
+                    <span style="font-size:10px; color: ${role === 'main' ? '#66b1ff' : '#e2b81d'};">
+                        [${role === 'main' ? 'メイン' : 'サブ'}]
+                    </span>
+                </th>
+            `;
+        });
+        theadHtml += `</tr>`;
+        deckThead.innerHTML = theadHtml;
+
+        let tbodyHtml = `<tr><td class="row-char" style="color: #ffcc00;">Total (総合勝率)</td>`;
+        handOrderList.forEach(myChar => {
+            const totalVal = matrixData[myChar]['Total'];
+            tbodyHtml += `
+                <td style="font-weight: bold; color: #ffcc00; background: #232936;">
+                    ${totalVal !== undefined ? totalVal.toFixed(3) : '-'}
+                </td>
+            `;
+        });
+        tbodyHtml += `</tr>`;
+
+        orderedCharacterList.forEach(oppChar => {
+            tbodyHtml += `<tr><td class="row-char">${oppChar}</td>`;
+            handOrderList.forEach(myChar => {
+                const rate = matrixData[myChar][oppChar];
+                const display = (myChar === oppChar || rate === null || rate === undefined) ? '-' : rate.toFixed(3);
+                const cellStyle = (myChar === oppChar) ? 'background-color: #111; color: #444;' : getCellVisual(rate);
+                tbodyHtml += `<td style="${cellStyle}">${display}</td>`;
+            });
+            tbodyHtml += `</tr>`;
+        });
+        deckTbody.innerHTML = tbodyHtml;
+
+        // --- 🎯 右側：アルゴリズムによる最適選出リストの生成 ---
+        let strategyHtml = '';
+
+        orderedCharacterList.forEach(oppChar => {
             const mainOptions = {};
             const subOptions = {};
 
-            Object.keys(selectedHand).forEach(myChar => {
-                const rate = matrixData[myChar]?.[oppChar];
-                if (rate !== undefined && rate !== null) {
+            handOrderList.forEach(myChar => {
+                const rate = matrixData[myChar][oppChar];
+                if (rate !== null && rate !== undefined) {
                     if (selectedHand[myChar] === 'main') {
                         mainOptions[myChar] = rate;
                     } else {
@@ -575,62 +427,59 @@
 
             let finalBestChar = '-';
             let finalBestRate = 0.0;
-            let reason = '';
-            let badgeStyle = 'background: #4b5563; color: #fff;'; 
+            let comment = '';
+            let reasonCode = '';
 
             if (bestMainRate > 5.000) {
                 if (bestSubRate >= 5.100 && (bestSubRate - bestMainRate) >= 0.100) {
                     finalBestChar = bestSubChar;
                     finalBestRate = bestSubRate;
-                    reason = `サブの ${bestSubChar} がメイン最高勝率 (${bestMainRate.toFixed(3)}) より 0.100 以上高いため、サブを投入します。`;
-                    badgeStyle = 'background: #2563eb; color: #fff;';
+                    reasonCode = 'sub_override';
+                    comment = 'サブが差0.1以上で圧倒';
                 } else {
                     finalBestChar = bestMainChar;
                     finalBestRate = bestMainRate;
-                    reason = `メインの ${bestMainChar} で有利が取れているため、そのままメインを続投します。`;
-                    badgeStyle = 'background: #d97706; color: #fff;';
+                    reasonCode = 'main_priority';
+                    comment = 'メイン優先（僅差はメイン）';
                 }
             } else {
-                if (bestSubChar && bestSubRate > bestMainRate) {
+                if (bestSubRate > bestMainRate) {
                     finalBestChar = bestSubChar;
                     finalBestRate = bestSubRate;
-                    reason = `メインが不利・五分以下 (${bestMainRate > -1 ? bestMainRate.toFixed(3) : 'データ無'}) かつ、サブの ${bestSubChar} の方が勝率が高いため、被せとしてサブを採用します。`;
-                    badgeStyle = 'background: #2563eb; color: #fff;';
-                } else if (bestMainChar) {
-                    finalBestChar = bestMainChar;
+                    reasonCode = 'sub_fallback';
+                    comment = 'メイン不利のためサブを投入';
+                } else {
+                    finalBestChar = bestMainChar || '-';
                     finalBestRate = bestMainRate;
-                    reason = `メイン・サブ含めても有利はいませんが、手札の中で最もマシなメインの ${bestMainChar} を選択します。`;
-                    badgeStyle = 'background: #d97706; color: #fff;';
-                } else if (bestSubChar) {
-                    finalBestChar = bestSubChar;
-                    finalBestRate = bestSubRate;
-                    reason = `メインの選択肢がありません。手札で最もマシなサブの ${bestSubChar} を選択します。`;
-                    badgeStyle = 'background: #2563eb; color: #fff;';
+                    reasonCode = 'main_fallback';
+                    comment = '全員不利のためメインが最善';
                 }
             }
 
-            let rateClassStyle = 'color: #e5e7eb;';
-            if (finalBestRate > 5.000) rateClassStyle = 'color: #34d399;';
-            else if (finalBestRate > 0 && finalBestRate < 5.000) rateClassStyle = 'color: #f87171;';
+            // 選出キャラクターが「選択した手札配列の何番目か」を検索しバッジ色を適用
+            const foundIdx = handOrderList.indexOf(finalBestChar);
+            const badgeStyle = (foundIdx !== -1) ? getCharBadgeStyle(foundIdx) : 'background-color: #4a5568; color: #fff;';
+            const rateStyle = (finalBestRate >= 5.000) ? 'advantage' : 'disadvantage';
 
-            html += `
-                <div class="strategy-card">
-                    <div class="strategy-header">
-                        <div class="opp-name">vs ${oppChar}</div>
-                        <div class="pick-info">
+            strategyHtml += `
+                <div class="strategy-item">
+                    <div class="opp-name">vs <strong>${oppChar}</strong></div>
+                    <span class="arrow">▶</span>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 12px; justify-content: flex-end;">
                             <div class="best-pick" style="${badgeStyle}">${finalBestChar}</div>
-                            <div class="best-rate" style="${rateClassStyle}">${finalBestRate > 0 ? finalBestRate.toFixed(3) : '-'}</div>
+                            <div class="best-rate ${rateStyle}">${finalBestRate > 0 ? finalBestRate.toFixed(3) : '-'}</div>
                         </div>
+                        <div class="reason-text">${comment}</div>
                     </div>
-                    <div class="reason-text">${reason}</div>
                 </div>
             `;
         });
 
-        analysisResult.innerHTML = html;
+        strategyList.innerHTML = strategyHtml;
     }
 
-    // 🎯 ターゲットキャラのピンポイント相性抽出
+    // 🎯 ターゲットキャラのピンポイント相性ライン抽出
     function highlightCharacter(charName) {
         clearAllHighlights();
         
@@ -661,7 +510,7 @@
         const totalVal = activeRow.querySelector('.total-cell').textContent.trim();
         createCardElement("Total 勝率", totalVal, "background-color:#2d3748; color:#ffcc00;");
 
-        characters.forEach(oppName => {
+        orderedCharacterList.forEach(oppName => {
             if (oppName === charName) return;
             const rate = matrixData[charName][oppName];
             const winRateStr = (rate !== undefined && rate !== null) ? rate.toFixed(3) : '-';
@@ -695,7 +544,6 @@
         });
     }
 
-    // 起動
     initApp();
 </script>
 
