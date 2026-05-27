@@ -16,7 +16,6 @@
         .panel-title { font-size: 14px; font-weight: bold; margin-bottom: 12px; color: #ff4d4d; display: flex; flex-direction: column; gap: 5px; }
         @media (min-width: 768px) { .panel-title { flex-direction: row; justify-content: space-between; } }
         
-        /* 📱 スマホでのキャラグリッドスクロール・コンパクト化 */
         .char-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; margin-bottom: 15px; max-height: 240px; overflow-y: auto; padding-right: 5px; }
         @media (min-width: 768px) { .char-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); max-height: none; } }
         
@@ -24,7 +23,6 @@
         .char-label input { margin-right: 6px; }
         .char-label.checked { background: #dc3545; color: #fff; border-color: #fff; box-shadow: 0 0 8px rgba(220,53,69,0.5); }
 
-        /* 📱 レスポンシブダッシュボード */
         .dashboard { display: grid; grid-template-columns: 1fr; gap: 20px; }
         @media (min-width: 900px) { .dashboard { grid-template-columns: 340px 1fr; gap: 25px; } }
 
@@ -35,11 +33,8 @@
         .weak-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #222536; font-size: 12px; }
         .weak-item:last-child { border-bottom: none; }
         
-        /* 📱 スマホでも崩れない拡張スカウトカード */
         .scout-card { background: #141622; border: 1px solid #2d3748; border-radius: 8px; padding: 15px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 12px; position: relative; }
-        @media (min-width: 550px) {
-            .scout-card { flex-direction: row; justify-content: space-between; align-items: center; }
-        }
+        @media (min-width: 550px) { .scout-card { flex-direction: row; justify-content: space-between; align-items: center; } }
         .scout-card.rank-1 { border-color: #ff4d4d; background: linear-gradient(135deg, #141622 75%, #2a1416); }
         .scout-card.rank-2 { border-color: #e2b81d; }
         
@@ -49,12 +44,8 @@
         .rank-2 .rank-num { color: #e2b81d; }
         
         .sub-name { font-size: 18px; font-weight: bold; color: #fff; line-height: 1.2; }
-        
-        /* 右側のスタッツグループ（スマホ時は左寄せ、PC時は右寄せ） */
         .stat-group { display: flex; flex-direction: row-reverse; justify-content: space-between; align-items: center; border-top: 1px solid #222536; padding-top: 10px; }
-        @media (min-width: 550px) {
-            .stat-group { display: block; text-align: right; border-top: none; padding-top: 0; }
-        }
+        @media (min-width: 550px) { .stat-group { display: block; text-align: right; border-top: none; padding-top: 0; } }
         .stat-main { font-size: 26px; font-weight: bold; color: #ff4d4d; font-family: monospace; line-height: 1; }
         .stat-sub { font-size: 11px; color: #718096; text-transform: uppercase; margin-bottom: 2px; }
         
@@ -69,7 +60,7 @@
 
 <div class="container">
     <h1>スト6 サブキャラ・天敵ハンタースカウター</h1>
-    <div class="subtitle">現在のメインキャラを選択してください。「チーム全員が不利（勝率4.950未満）な詰み対面」を、最も多く返り討ちにできるサブキャラをリアルタイムでシミュレートします。</div>
+    <div class="subtitle">現在のメインキャラを選択してください。「4.95未満の不利」または「5.1以上の有利カードがない同キャラ・五分対面」を天敵とし、5.100以上の有利で圧倒できるサブキャラを抽出します。</div>
 
     <div class="panel">
         <form id="scouterForm" onsubmit="return false;">
@@ -82,10 +73,10 @@
     </div>
 
     <div class="dashboard" id="dashboardSection" style="display: none;">
-        <div>
-            <div class="box-title">💀 現在のチームの天敵 (全員が勝率4.95未満)</div>
+        <div class="dashboard-left">
+            <div class="box-title">💀 現在のチームの天敵 (有利カードがない対面)</div>
             <div class="status-box">
-                <p style="font-size: 11px; margin: 0 0 10px; color: #a0aec0;">手札のキャラ全員を合わせても平均勝率が4.950に届かない、要対策キャラクターです。</p>
+                <p style="font-size: 11px; margin: 0 0 10px; color: #a0aec0;">勝率が4.950未満、または手札内に勝率5.100以上の明確な有利キャラがいない要対策対面です。</p>
                 <div class="weak-list" id="weakList"></div>
             </div>
         </div>
@@ -98,16 +89,15 @@
 </div>
 
 <script>
-    // 🌟 勝率データを直書き内包
     const matrixData = {
       "MAI": { "Total": 5.1, "MAI": null, "C.VIPER": 5.114, "RASHID": 5.168, "DHALSIM": 4.675, "ELENA": 4.994, "VEGA": 5.106, "SAGAT": 5.066, "CHUN-LI": 5.063, "ALEX": 5.279, "E.HONDA": 5.126, "ED": 5.228, "JP": 5.170, "TERRY": 5.107, "KIMBERLY": 4.865, "ZANGIEF": 4.703, "BLANKA": 5.089, "LILY": 4.867, "CAMMY": 5.054, "DEE JAY": 5.118, "LUKE": 5.261, "MARISA": 5.024, "GUILE": 5.056, "KEN": 5.254, "JURI": 5.288, "RYU": 5.206, "GOUKI": 5.185, "JAMIE": 5.122, "MANON": 5.183, "A.K.I.": 4.978 },
       "C.VIPER": { "Total": 5.053, "MAI": 4.885, "C.VIPER": null, "RASHID": 4.918, "DHALSIM": 5.052, "ELENA": 5.003, "VEGA": 4.829, "SAGAT": 4.967, "CHUN-LI": 5.278, "ALEX": 4.834, "E.HONDA": 4.868, "ED": 5.039, "JP": 4.857, "TERRY": 4.964, "KIMBERLY": 4.794, "ZANGIEF": 5.299, "BLANKA": 4.975, "LILY": 5.173, "CAMMY": 5.195, "DEE JAY": 5.007, "LUKE": 5.213, "MARISA": 5.135, "GUILE": 4.928, "KEN": 5.056, "JURI": 5.093, "RYU": 5.399, "GOUKI": 5.403, "JAMIE": 5.275, "MANON": 4.955, "A.K.I.": 5.126 },
       "RASHID": { "Total": 5.048, "MAI": 4.824, "C.VIPER": 5.104, "RASHID": null, "DHALSIM": 5.917, "ELENA": 4.955, "VEGA": 4.822, "SAGAT": 4.901, "CHUN-LI": 4.917, "ALEX": 5.086, "E.HONDA": 5.070, "ED": 5.236, "JP": 5.181, "TERRY": 5.032, "KIMBERLY": 5.252, "ZANGIEF": 4.886, "BLANKA": 5.129, "LILY": 5.251, "CAMMY": 5.022, "DEE JAY": 5.120, "LUKE": 4.917, "MARISA": 5.042, "GUILE": 5.249, "KEN": 5.017, "JURI": 5.048, "RYU": 4.860, "GOUKI": 5.181, "JAMIE": 4.940, "MANON": 4.768, "A.K.I.": 5.063 },
       "DHALSIM": { "Total": 5.042, "MAI": 5.337, "C.VIPER": 4.946, "RASHID": 4.109, "DHALSIM": null, "ELENA": 5.473, "VEGA": 4.672, "SAGAT": 4.712, "CHUN-LI": 5.559, "ALEX": 4.617, "E.HONDA": 4.987, "ED": 5.548, "JP": 5.610, "TERRY": 4.898, "KIMBERLY": 4.490, "ZANGIEF": 5.931, "BLANKA": 4.588, "LILY": 5.844, "CAMMY": 4.546, "DEE JAY": 4.585, "LUKE": 5.056, "MARISA": 5.665, "GUILE": 4.951, "KEN": 4.954, "JURI": 4.809, "RYU": 5.076, "GOUKI": 5.032, "JAMIE": 5.292, "MANON": 5.405, "A.K.I.": 5.144 },
-      "ELENA": { "Total": 5.033, "MAI": 5.023, "C.VIPER": 5.002, "RASHID": 5.052, "DHALSIM": 4.529, "ELENA": null, "VEGA": 4.924, "SAGAT": 4.949, "CHUN-LI": 4.943, "ALEX": 4.926, "E.HONDA": 4.920, "ED": 5.076, "JP": 4.985, "TERRY": 4.091, "ZANGIEF": 5.185, "BLANKA": 5.068, "LILY": 4.665, "CAMMY": 4.699, "DEE JAY": 5.091, "LUKE": 5.186, "MARISA": 4.998, "GUILE": 5.401, "KEN": 5.084, "JURI": 5.027, "RYU": 5.220, "GOUKI": 5.268, "JAMIE": 5.167, "MANON": 5.298, "A.K.I.": 5.114 },
+      "ELENA": { "Total": 5.033, "MAI": 5.023, "C.VIPER": 5.002, "RASHID": 5.052, "DHALSIM": 4.529, "ELENA": null, "VEGA": 4.924, "SAGAT": 4.949, "CHUN-LI": 4.943, "ALEX": 4.926, "E.HONDA": 4.920, "ED": 5.076, "JP": 4.985, "TERRY": 5.091, "KIMBERLY": 4.901, "ZANGIEF": 5.185, "BLANKA": 5.068, "LILY": 4.665, "CAMMY": 4.699, "DEE JAY": 5.091, "LUKE": 5.186, "MARISA": 4.998, "GUILE": 5.401, "KEN": 5.084, "JURI": 5.027, "RYU": 5.220, "GOUKI": 5.268, "JAMIE": 5.167, "MANON": 5.298, "A.K.I.": 5.114 },
       "VEGA": { "Total": 5.028, "MAI": 4.905, "C.VIPER": 5.159, "RASHID": 5.229, "DHALSIM": 5.333, "ELENA": 5.084, "VEGA": null, "SAGAT": 5.073, "CHUN-LI": 5.177, "ALEX": 5.118, "E.HONDA": 4.630, "ED": 4.760, "JP": 5.271, "TERRY": 4.931, "KIMBERLY": 4.988, "ZANGIEF": 4.567, "BLANKA": 4.907, "LILY": 4.818, "CAMMY": 4.853, "DEE JAY": 5.142, "LUKE": 5.010, "MARISA": 5.136, "GUILE": 5.326, "KEN": 4.885, "JURI": 4.917, "RYU": 5.013, "GOUKI": 5.148, "JAMIE": 5.139, "MANON": 4.839, "A.K.I.": 5.359 },
       "SAGAT": { "Total": 5.025, "MAI": 4.947, "C.VIPER": 5.060, "RASHID": 5.064, "DHALSIM": 5.300, "ELENA": 5.083, "VEGA": 4.915, "SAGAT": null, "CHUN-LI": 5.039, "ALEX": 4.831, "E.HONDA": 4.887, "ED": 4.790, "JP": 4.837, "TERRY": 5.102, "KIMBERLY": 5.117, "ZANGIEF": 5.179, "BLANKA": 5.262, "LILY": 4.912, "CAMMY": 4.927, "DEE JAY": 5.062, "LUKE": 5.131, "MARISA": 4.915, "GUILE": 5.068, "KEN": 5.079, "JURI": 5.091, "RYU": 4.991, "GOUKI": 4.947, "JAMIE": 5.230, "MANON": 5.056, "A.K.I.": 5.020 },
-      "CHUN-LI": { "Total": 5.024, "MAI": 4.996, "C.VIPER": 4.710, "RASHID": 5.083, "DHALSIM": 4.414, "ELENA": 5.078, "VEGA": 4.884, "SAGAT": 4.955, "CHUN-LI": null, "ALEX": 4.700, "E.HONDA": 5.351, "ED": 5.316, "JP": 4.700, "TERRY": 5.184, "KIMBERLY": 5.072, "ZANGIEF": 4.925, "BLANKA": 4.946, "LILY": 4.751, "CAMMY": 4.044, "DEE JAY": 5.063, "LUKE": 5.247, "MARISA": 4.859, "GUILE": 5.166, "KEN": 5.199, "JURI": 5.177, "RYU": 5.182, "GOUKI": 5.259, "JAMIE": 4.916, "MANON": 5.189, "A.K.I.": 4.974 },
+      "CHUN-LI": { "Total": 5.024, "MAI": 4.996, "C.VIPER": 4.710, "RASHID": 5.083, "DHALSIM": 4.414, "ELENA": 5.078, "VEGA": 4.884, "SAGAT": 4.955, "CHUN-LI": null, "ALEX": 4.700, "E.HONDA": 5.351, "ED": 5.316, "JP": 4.700, "TERRY": 5.184, "KIMBERLY": 5.072, "ZANGIEF": 4.925, "BLANKA": 4.946, "LILY": 4.751, "CAMMY": 4.044, "DEE JAY": 5.118, "LUKE": 5.247, "MARISA": 4.859, "GUILE": 5.166, "KEN": 5.199, "JURI": 5.177, "RYU": 5.182, "GOUKI": 5.259, "JAMIE": 4.916, "MANON": 5.189, "A.K.I.": 4.974 },
       "ALEX": { "Total": 5.023, "MAI": 4.796, "C.VIPER": 5.223, "RASHID": 4.975, "DHALSIM": 5.424, "ELENA": 5.050, "VEGA": 4.879, "SAGAT": 5.123, "CHUN-LI": 5.294, "ALEX": null, "E.HONDA": 4.789, "ED": 5.071, "JP": 5.069, "TERRY": 4.789, "KIMBERLY": 4.766, "ZANGIEF": 4.955, "BLANKA": 4.974, "LILY": 5.029, "CAMMY": 5.208, "DEE JAY": 4.749, "LUKE": 4.831, "MARISA": 4.918, "GUILE": 4.861, "KEN": 5.084, "JURI": 5.032, "RYU": 5.158, "GOUKI": 5.295, "JAMIE": 5.028, "MANON": 5.209, "A.K.I.": 5.178 },
       "E.HONDA": { "Total": 5.018, "MAI": 4.860, "C.VIPER": 5.119, "RASHID": 4.949, "DHALSIM": 5.029, "ELENA": 5.061, "VEGA": 5.369, "SAGAT": 5.117, "CHUN-LI": 4.660, "ALEX": 5.209, "E.HONDA": null, "ED": 4.872, "JP": 4.873, "TERRY": 4.939, "KIMBERLY": 4.954, "ZANGIEF": 4.638, "BLANKA": 5.366, "LILY": 4.749, "CAMMY": 5.446, "DEE JAY": 5.321, "LUKE": 4.949, "MARISA": 4.937, "GUILE": 4.982, "KEN": 4.798, "JURI": 5.095, "RYU": 4.836, "GOUKI": 5.186, "JAMIE": 5.135, "MANON": 5.043, "A.K.I.": 4.943 },
       "ED": { "Total": 5.013, "MAI": 4.789, "C.VIPER": 4.951, "RASHID": 4.742, "DHALSIM": 4.442, "ELENA": 4.948, "VEGA": 5.216, "SAGAT": 5.195, "CHUN-LI": 4.663, "ALEX": 4.967, "E.HONDA": 5.059, "ED": null, "JP": 5.170, "TERRY": 4.925, "KIMBERLY": 4.667, "ZANGIEF": 5.152, "BLANKA": 4.933, "LILY": 5.083, "CAMMY": 4.984, "DEE JAY": 4.886, "LUKE": 5.250, "MARISA": 5.237, "GUILE": 4.815, "KEN": 5.205, "JURI": 5.208, "RYU": 5.060, "GOUKI": 4.944, "JAMIE": 5.007, "MANON": 5.317, "A.K.I.": 4.851 },
@@ -191,6 +181,7 @@
         });
     }
 
+    // 🧠 リアルタイム総当たりシミュレーション（同キャラ戦強制天敵化 ＆ 5.100以上有利ピック）
     function runScoutSimulation(selectedMainChars) {
         const currentCoverage = {};
         const weakOpps = {};
@@ -206,13 +197,19 @@
                         bestCurrentRate = rate;
                     }
                     hasData = true;
+                } else if (mainChar === opp) {
+                    // 同キャラ対面データ（null）の場合、ベースラインを5.000とする
+                    if (5.000 > bestCurrentRate) {
+                        bestCurrentRate = 5.000;
+                    }
+                    hasData = true;
                 }
             });
 
             currentCoverage[opp] = hasData ? bestCurrentRate : 5.000;
 
-            // 🌟 【修正】天敵判定の境界を「5.000未満」から「4.950未満」へ引き下げ
-            if (currentCoverage[opp] < 4.950) {
+            // 🌟【ロジック修正】4.95未満の不利、または「5.1以上の明確な有利キャラが1体もいない五分・同キャラ対面」を天敵として検出
+            if (currentCoverage[opp] < 5.100) {
                 weakOpps[opp] = currentCoverage[opp];
             }
         });
@@ -232,11 +229,11 @@
             allCharacters.forEach(opp => {
                 const currentRate = currentCoverage[opp];
                 const candidateRate = (matrixData[candidateChar]?.[opp] !== undefined && matrixData[candidateChar]?.[opp] !== null) 
-                                      ? matrixData[candidateChar][opp] : 5.000;
+                                      ? matrixData[candidateChar][opp] : (candidateChar === opp ? 5.000 : 5.000);
 
-                // 🌟 【修正】4.950未満の本当の天敵だけを補完・シミュレーションの対象にする
-                if (currentRate < 4.950) {
-                    if (candidateRate >= 4.950) {
+                if (currentRate < 5.100) {
+                    // 🌟【ロジック修正】候補サブキャラが勝率「5.100以上（明確な対策カード）」を出せる時のみ撃破カウント
+                    if (candidateRate >= 5.100) {
                         improvedWeakCount++;
                         coveredDetails[opp] = candidateRate;
                     }
@@ -268,16 +265,21 @@
     function renderWeakList(weakOpps) {
         const oppNames = Object.keys(weakOpps);
         if (oppNames.length === 0) {
-            weakList.innerHTML = `<p style="color: #48bb78; font-weight: bold; font-size: 13px; margin: 5px 0;">🎉 完璧な布陣！全員4.950以上でカバー可能です。</p>`;
+            weakList.innerHTML = `<p style="color: #48bb78; font-weight: bold; font-size: 13px; margin: 5px 0;">🎉 完璧な布陣！全員に対して5.100以上の有利キャラが手札に存在します。</p>`;
             return;
         }
 
-        let html = `<p style="font-size: 12px; font-weight: bold; color: #ff4d4d; margin: 5px 0;">計 ${oppNames.length} 体の天敵がいます</p>`;
+        let html = `<p style="font-size: 12px; font-weight: bold; color: #ff4d4d; margin: 5px 0;">計 ${oppNames.length} 体の対策必要対面があります</p>`;
         oppNames.forEach(opp => {
+            const currentRate = weakOpps[opp];
+            let rateText = `現在の最高勝率: ${currentRate.toFixed(3)}`;
+            if (currentRate === 5.000) {
+                rateText = `同キャラ・五分 (有利カードなし)`;
+            }
             html += `
                 <div class="weak-item">
                     <span>vs <strong>${opp}</strong></span>
-                    <span class="text-lose">現在の最高勝率: ${weakOpps[opp].toFixed(3)}</span>
+                    <span class="text-lose">${rateText}</span>
                 </div>
             `;
         });
@@ -286,7 +288,7 @@
 
     function renderScoutRank(displaySubs, totalWeakCount) {
         if (totalWeakCount === 0) {
-            scoutRankList.innerHTML = `<p class="status-box" style="background:#141622; padding:12px; border-radius:6px; border:1px solid #2d3748;">現在ガチ天敵（4.95未満）がいないため、これ以上の補完用サブ追加は不要です！地力の高い強キャラをお好みで選んでください。</p>`;
+            scoutRankList.innerHTML = `<p class="status-box" style="background:#141622; padding:12px; border-radius:6px; border:1px solid #2d3748;">現在のメンバー全員に5.1以上の有利カードがあるため、補完用サブの追加は不要です！</p>`;
             return;
         }
 
@@ -303,7 +305,7 @@
             if (sub.overcome_count > 0) {
                 enemyDetailsHTML += `
                     <div class="covered-enemies">
-                        <strong>【役割対象（4.950以上）に変える相手】</strong><br>
+                        <strong>【明確な有利（5.100以上）に変える相手】</strong><br>
                 `;
                 coveredEnemies.forEach(opp => {
                     enemyDetailsHTML += `vs ${opp} ➔ <span class="text-win">${sub.covered_details[opp].toFixed(3)}</span><br>`;
@@ -312,7 +314,7 @@
             } else {
                 enemyDetailsHTML += `
                     <div class="covered-enemies" style="color: #718096;">
-                        ※勝率4.95以上の反撃は不可ですが、チーム全体のマイナスを一番和らげる候補です（天敵平均勝率: ${sub.weak_win_rate_avg.toFixed(3)}）
+                        ※勝率5.100以上の圧倒は不可ですが、チーム全体の勝率を一番マシにする候補です（平均勝率: ${sub.weak_win_rate_avg.toFixed(3)}）
                     </div>
                 `;
             }
@@ -323,13 +325,13 @@
                         <div class="rank-num">#${rank}</div>
                         <div>
                             <div class="sub-name">${sub.sub_char}</div>
-                            <div class="overcome-tag">天敵撃破数: ${sub.overcome_count} / ${totalWeakCount} 体</div>
+                            <div class="overcome-tag">有利化数: ${sub.overcome_count} / ${totalWeakCount} 体</div>
                             ${enemyDetailsHTML}
                         </div>
                     </div>
                     <div class="stat-group">
                         <div class="stat-main">${sub.overcome_count}</div>
-                        <div class="stat-sub">天敵撃破数</div>
+                        <div class="stat-sub">有利化数</div>
                     </div>
                 </div>
             `;
