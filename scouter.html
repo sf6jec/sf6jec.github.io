@@ -50,6 +50,7 @@
         
         .sub-name { font-size: 18px; font-weight: bold; color: #fff; line-height: 1.2; }
         
+        /* 右側のスタッツグループ（スマホ時は左寄せ、PC時は右寄せ） */
         .stat-group { display: flex; flex-direction: row-reverse; justify-content: space-between; align-items: center; border-top: 1px solid #222536; padding-top: 10px; }
         @media (min-width: 550px) {
             .stat-group { display: block; text-align: right; border-top: none; padding-top: 0; }
@@ -68,7 +69,7 @@
 
 <div class="container">
     <h1>スト6 サブキャラ・天敵ハンタースカウター</h1>
-    <div class="subtitle">現在のメインキャラを選択してください。「チーム全員が不利（勝率5.000未満）な詰み対面」を、最も多く返り討ちにできるサブキャラをリアルタイムでシミュレートします。</div>
+    <div class="subtitle">現在のメインキャラを選択してください。「チーム全員が不利（勝率4.950未満）な詰み対面」を、最も多く返り討ちにできるサブキャラをリアルタイムでシミュレートします。</div>
 
     <div class="panel">
         <form id="scouterForm" onsubmit="return false;">
@@ -76,16 +77,15 @@
                 <span>現在のあなたのメインキャラ（手札）を選択（1〜4体）</span>
                 <span id="counter" style="color: #a0aec0;">選択中: 0 / 4</span>
             </div>
-            <div class="char-grid" id="charGrid">
-                </div>
+            <div class="char-grid" id="charGrid"></div>
         </form>
     </div>
 
     <div class="dashboard" id="dashboardSection" style="display: none;">
         <div>
-            <div class="box-title">💀 現在のチームの天敵 (全員が勝率5.0未満)</div>
+            <div class="box-title">💀 現在のチームの天敵 (全員が勝率4.95未満)</div>
             <div class="status-box">
-                <p style="font-size: 11px; margin: 0 0 10px; color: #a0aec0;">手札のキャラ全員を合わせても平均勝率が5.000に届かない、要対策キャラクターです。</p>
+                <p style="font-size: 11px; margin: 0 0 10px; color: #a0aec0;">手札のキャラ全員を合わせても平均勝率が4.950に届かない、要対策キャラクターです。</p>
                 <div class="weak-list" id="weakList"></div>
             </div>
         </div>
@@ -98,13 +98,13 @@
 </div>
 
 <script>
-    // 🌟 【CORS対策】提供されたJSONデータ（sf6.json）の中身を変数として直接直書き
+    // 🌟 勝率データを直書き内包
     const matrixData = {
       "MAI": { "Total": 5.1, "MAI": null, "C.VIPER": 5.114, "RASHID": 5.168, "DHALSIM": 4.675, "ELENA": 4.994, "VEGA": 5.106, "SAGAT": 5.066, "CHUN-LI": 5.063, "ALEX": 5.279, "E.HONDA": 5.126, "ED": 5.228, "JP": 5.170, "TERRY": 5.107, "KIMBERLY": 4.865, "ZANGIEF": 4.703, "BLANKA": 5.089, "LILY": 4.867, "CAMMY": 5.054, "DEE JAY": 5.118, "LUKE": 5.261, "MARISA": 5.024, "GUILE": 5.056, "KEN": 5.254, "JURI": 5.288, "RYU": 5.206, "GOUKI": 5.185, "JAMIE": 5.122, "MANON": 5.183, "A.K.I.": 4.978 },
       "C.VIPER": { "Total": 5.053, "MAI": 4.885, "C.VIPER": null, "RASHID": 4.918, "DHALSIM": 5.052, "ELENA": 5.003, "VEGA": 4.829, "SAGAT": 4.967, "CHUN-LI": 5.278, "ALEX": 4.834, "E.HONDA": 4.868, "ED": 5.039, "JP": 4.857, "TERRY": 4.964, "KIMBERLY": 4.794, "ZANGIEF": 5.299, "BLANKA": 4.975, "LILY": 5.173, "CAMMY": 5.195, "DEE JAY": 5.007, "LUKE": 5.213, "MARISA": 5.135, "GUILE": 4.928, "KEN": 5.056, "JURI": 5.093, "RYU": 5.399, "GOUKI": 5.403, "JAMIE": 5.275, "MANON": 4.955, "A.K.I.": 5.126 },
       "RASHID": { "Total": 5.048, "MAI": 4.824, "C.VIPER": 5.104, "RASHID": null, "DHALSIM": 5.917, "ELENA": 4.955, "VEGA": 4.822, "SAGAT": 4.901, "CHUN-LI": 4.917, "ALEX": 5.086, "E.HONDA": 5.070, "ED": 5.236, "JP": 5.181, "TERRY": 5.032, "KIMBERLY": 5.252, "ZANGIEF": 4.886, "BLANKA": 5.129, "LILY": 5.251, "CAMMY": 5.022, "DEE JAY": 5.120, "LUKE": 4.917, "MARISA": 5.042, "GUILE": 5.249, "KEN": 5.017, "JURI": 5.048, "RYU": 4.860, "GOUKI": 5.181, "JAMIE": 4.940, "MANON": 4.768, "A.K.I.": 5.063 },
       "DHALSIM": { "Total": 5.042, "MAI": 5.337, "C.VIPER": 4.946, "RASHID": 4.109, "DHALSIM": null, "ELENA": 5.473, "VEGA": 4.672, "SAGAT": 4.712, "CHUN-LI": 5.559, "ALEX": 4.617, "E.HONDA": 4.987, "ED": 5.548, "JP": 5.610, "TERRY": 4.898, "KIMBERLY": 4.490, "ZANGIEF": 5.931, "BLANKA": 4.588, "LILY": 5.844, "CAMMY": 4.546, "DEE JAY": 4.585, "LUKE": 5.056, "MARISA": 5.665, "GUILE": 4.951, "KEN": 4.954, "JURI": 4.809, "RYU": 5.076, "GOUKI": 5.032, "JAMIE": 5.292, "MANON": 5.405, "A.K.I.": 5.144 },
-      "ELENA": { "Total": 5.033, "MAI": 5.023, "C.VIPER": 5.002, "RASHID": 5.052, "DHALSIM": 4.529, "ELENA": null, "VEGA": 4.924, "SAGAT": 4.949, "CHUN-LI": 4.943, "ALEX": 4.926, "E.HONDA": 4.920, "ED": 5.076, "JP": 4.985, "TERRY": 5.091, "KIMBERLY": 4.911, "ZANGIEF": 5.185, "BLANKA": 5.068, "LILY": 4.665, "CAMMY": 4.699, "DEE JAY": 5.091, "LUKE": 5.186, "MARISA": 4.998, "GUILE": 5.401, "KEN": 5.084, "JURI": 5.027, "RYU": 5.220, "GOUKI": 5.268, "JAMIE": 5.167, "MANON": 5.298, "A.K.I.": 5.114 },
+      "ELENA": { "Total": 5.033, "MAI": 5.023, "C.VIPER": 5.002, "RASHID": 5.052, "DHALSIM": 4.529, "ELENA": null, "VEGA": 4.924, "SAGAT": 4.949, "CHUN-LI": 4.943, "ALEX": 4.926, "E.HONDA": 4.920, "ED": 5.076, "JP": 4.985, "TERRY": 4.091, "ZANGIEF": 5.185, "BLANKA": 5.068, "LILY": 4.665, "CAMMY": 4.699, "DEE JAY": 5.091, "LUKE": 5.186, "MARISA": 4.998, "GUILE": 5.401, "KEN": 5.084, "JURI": 5.027, "RYU": 5.220, "GOUKI": 5.268, "JAMIE": 5.167, "MANON": 5.298, "A.K.I.": 5.114 },
       "VEGA": { "Total": 5.028, "MAI": 4.905, "C.VIPER": 5.159, "RASHID": 5.229, "DHALSIM": 5.333, "ELENA": 5.084, "VEGA": null, "SAGAT": 5.073, "CHUN-LI": 5.177, "ALEX": 5.118, "E.HONDA": 4.630, "ED": 4.760, "JP": 5.271, "TERRY": 4.931, "KIMBERLY": 4.988, "ZANGIEF": 4.567, "BLANKA": 4.907, "LILY": 4.818, "CAMMY": 4.853, "DEE JAY": 5.142, "LUKE": 5.010, "MARISA": 5.136, "GUILE": 5.326, "KEN": 4.885, "JURI": 4.917, "RYU": 5.013, "GOUKI": 5.148, "JAMIE": 5.139, "MANON": 4.839, "A.K.I.": 5.359 },
       "SAGAT": { "Total": 5.025, "MAI": 4.947, "C.VIPER": 5.060, "RASHID": 5.064, "DHALSIM": 5.300, "ELENA": 5.083, "VEGA": 4.915, "SAGAT": null, "CHUN-LI": 5.039, "ALEX": 4.831, "E.HONDA": 4.887, "ED": 4.790, "JP": 4.837, "TERRY": 5.102, "KIMBERLY": 5.117, "ZANGIEF": 5.179, "BLANKA": 5.262, "LILY": 4.912, "CAMMY": 4.927, "DEE JAY": 5.062, "LUKE": 5.131, "MARISA": 4.915, "GUILE": 5.068, "KEN": 5.079, "JURI": 5.091, "RYU": 4.991, "GOUKI": 4.947, "JAMIE": 5.230, "MANON": 5.056, "A.K.I.": 5.020 },
       "CHUN-LI": { "Total": 5.024, "MAI": 4.996, "C.VIPER": 4.710, "RASHID": 5.083, "DHALSIM": 4.414, "ELENA": 5.078, "VEGA": 4.884, "SAGAT": 4.955, "CHUN-LI": null, "ALEX": 4.700, "E.HONDA": 5.351, "ED": 5.316, "JP": 4.700, "TERRY": 5.184, "KIMBERLY": 5.072, "ZANGIEF": 4.925, "BLANKA": 4.946, "LILY": 4.751, "CAMMY": 4.044, "DEE JAY": 5.063, "LUKE": 5.247, "MARISA": 4.859, "GUILE": 5.166, "KEN": 5.199, "JURI": 5.177, "RYU": 5.182, "GOUKI": 5.259, "JAMIE": 4.916, "MANON": 5.189, "A.K.I.": 4.974 },
@@ -115,7 +115,7 @@
       "TERRY": { "Total": 5.013, "MAI": 4.898, "C.VIPER": 4.991, "RASHID": 4.965, "DHALSIM": 5.118, "ELENA": 4.911, "VEGA": 5.021, "SAGAT": 4.896, "CHUN-LI": 4.795, "ALEX": 5.231, "E.HONDA": 5.078, "ED": 5.059, "JP": 4.916, "TERRY": null, "KIMBERLY": 5.092, "ZANGIEF": 5.003, "BLANKA": 5.099, "LILY": 5.176, "CAMMY": 4.917, "DEE JAY": 4.886, "LUKE": 5.064, "MARISA": 5.023, "GUILE": 4.839, "KEN": 5.085, "JURI": 5.032, "RYU": 5.033, "GOUKI": 5.198, "JAMIE": 5.058, "MANON": 5.001, "A.K.I.": 5.219 },
       "KIMBERLY": { "Total": 5.010, "MAI": 5.099, "C.VIPER": 5.202, "RASHID": 4.771, "DHALSIM": 5.542, "ELENA": 5.102, "VEGA": 5.013, "SAGAT": 4.838, "CHUN-LI": 4.926, "ALEX": 5.239, "E.HONDA": 5.039, "ED": 5.339, "JP": 5.241, "TERRY": 4.901, "KIMBERLY": null, "ZANGIEF": 4.836, "BLANKA": 4.673, "LILY": 5.279, "CAMMY": 5.010, "DEE JAY": 5.052, "LUKE": 5.038, "MARISA": 5.005, "GUILE": 5.022, "KEN": 4.609, "JURI": 4.950, "RYU": 4.966, "GOUKI": 4.823, "JAMIE": 4.963, "MANON": 4.995, "A.K.I.": 5.246 },
       "ZANGIEF": { "Total": 5.010, "MAI": 5.256, "C.VIPER": 4.712, "RASHID": 5.149, "DHALSIM": 4.078, "ELENA": 4.830, "VEGA": 5.431, "SAGAT": 4.817, "CHUN-LI": 5.094, "ALEX": 5.130, "E.HONDA": 5.358, "ED": 4.874, "JP": 4.686, "TERRY": 4.963, "KIMBERLY": 5.141, "ZANGIEF": null, "BLANKA": 5.100, "LILY": 4.531, "CAMMY": 5.260, "DEE JAY": 5.123, "LUKE": 5.143, "MARISA": 4.885, "GUILE": 5.611, "KEN": 5.361, "JURI": 4.986, "RYU": 4.739, "GOUKI": 4.915, "JAMIE": 5.117, "MANON": 4.825, "A.K.I.": 5.000 },
-      "BLANKA": { "Total": 5.004, "MAI": 4.897, "C.VIPER": 5.018, "RASHID": 4.904, "DHALSIM": 5.455, "ELENA": 4.961, "VEGA": 5.108, "SAGAT": 4.745, "CHUN-LI": 5.036, "ALEX": 5.022, "E.HONDA": 4.587, "ED": 5.068, "JP": 4.857, "TERRY": 4.931, "KIMBERLY": 5.324, "ZANGIEF": 4.885, "BLANKA": null, "LILY": 5.486, "CAMMY": 5.508, "DEE JAY": 4.891, "LUKE": 4.965, "MARISA": 5.193, "GUILE": 4.747, "KEN": 4.795, "JURI": 4.949, "RYU": 4.707, "GOUKI": 4.968, "JAMIE": 5.336, "MANON": 5.068, "A.K.I.": 5.099 },
+      "BLANKA": { "Total": 5.004, "MAI": 4.897, "C.VIPER": 5.018, "RASHID": 4.904, "DHALSIM": 5.455, "ELENA": 4.961, "VEGA": 5.108, "SAGAT": 4.745, "CHUN-LI": 5.036, "ALEX": 5.022, "E.HONDA": 4.587, "ED": 5.068, "JP": 4.857, "TERRY": 4.931, "KIMBERLY": 5.324, "ZANGIEF": 4.885, "BLANKA": null, "LILY": 5.486, "CAMMY": 5.508, "DEE JAY": 4.891, "LUKE": 4.891, "MARISA": 5.193, "GUILE": 4.747, "KEN": 4.795, "JURI": 4.949, "RYU": 4.707, "GOUKI": 4.968, "JAMIE": 5.336, "MANON": 5.068, "A.K.I.": 5.099 },
       "LILY": { "Total": 5.003, "MAI": 5.137, "C.VIPER": 4.857, "RASHID": 4.779, "DHALSIM": 4.148, "ELENA": 5.298, "VEGA": 5.161, "SAGAT": 5.094, "CHUN-LI": 5.296, "ALEX": 4.945, "E.HONDA": 5.225, "ED": 4.937, "JP": 4.548, "TERRY": 4.792, "KIMBERLY": 4.703, "ZANGIEF": 5.484, "BLANKA": 4.544, "LILY": null, "CAMMY": 5.164, "DEE JAY": 5.130, "LUKE": 4.944, "MARISA": 5.331, "GUILE": 4.797, "KEN": 5.169, "JURI": 5.264, "RYU": 5.043, "GOUKI": 5.117, "JAMIE": 5.108, "MANON": 5.156, "A.K.I.": 4.778 },
       "CAMMY": { "Total": 4.998, "MAI": 4.909, "C.VIPER": 4.811, "RASHID": 5.008, "DHALSIM": 5.443, "ELENA": 5.319, "VEGA": 5.101, "SAGAT": 5.081, "CHUN-LI": 4.967, "ALEX": 4.828, "E.HONDA": 4.555, "ED": 4.989, "JP": 5.112, "TERRY": 5.079, "KIMBERLY": 4.998, "ZANGIEF": 4.749, "BLANKA": 4.515, "LILY": 4.888, "CAMMY": null, "DEE JAY": 4.675, "LUKE": 5.023, "MARISA": 4.818, "GUILE": 5.200, "KEN": 5.132, "JURI": 5.080, "RYU": 5.229, "GOUKI": 5.409, "JAMIE": 4.765, "MANON": 4.854, "A.K.I.": 4.996 },
       "DEE JAY": { "Total": 4.997, "MAI": 4.892, "C.VIPER": 4.971, "RASHID": 4.909, "DHALSIM": 5.393, "ELENA": 4.915, "VEGA": 4.863, "SAGAT": 4.945, "CHUN-LI": 4.918, "ALEX": 5.271, "E.HONDA": 4.729, "ED": 5.128, "JP": 5.014, "TERRY": 5.131, "KIMBERLY": 4.976, "ZANGIEF": 4.875, "BLANKA": 5.108, "LILY": 4.859, "CAMMY": 5.329, "DEE JAY": null, "LUKE": 4.771, "MARISA": 4.711, "GUILE": 4.848, "KEN": 5.154, "JURI": 4.885, "RYU": 5.113, "GOUKI": 5.117, "JAMIE": 5.338, "MANON": 4.828, "A.K.I.": 4.900 },
@@ -125,13 +125,12 @@
       "KEN": { "Total": 4.969, "MAI": 4.763, "C.VIPER": 4.907, "RASHID": 4.983, "DHALSIM": 5.058, "ELENA": 4.916, "VEGA": 5.119, "SAGAT": 4.910, "CHUN-LI": 4.815, "ALEX": 4.921, "E.HONDA": 5.220, "ED": 4.778, "JP": 4.955, "TERRY": 4.855, "KIMBERLY": 5.413, "ZANGIEF": 4.658, "BLANKA": 5.215, "LILY": 4.844, "CAMMY": 4.866, "DEE JAY": 4.855, "LUKE": 4.957, "MARISA": 4.869, "GUILE": 4.776, "KEN": null, "JURI": 5.200, "RYU": 4.905, "GOUKI": 4.963, "JAMIE": 4.801, "MANON": 5.168, "A.K.I.": 4.998 },
       "JURI": { "Total": 4.960, "MAI": 4.721, "C.VIPER": 4.896, "RASHID": 4.967, "DHALSIM": 5.198, "ELENA": 4.968, "VEGA": 5.055, "SAGAT": 4.904, "CHUN-LI": 4.809, "ALEX": 5.034, "E.HONDA": 4.917, "ED": 4.773, "JP": 5.213, "TERRY": 4.920, "KIMBERLY": 5.048, "ZANGIEF": 5.077, "BLANKA": 5.026, "LILY": 4.777, "CAMMY": 4.931, "DEE JAY": 5.096, "LUKE": 4.806, "MARISA": 5.366, "GUILE": 4.820, "KEN": 4.803, "JURI": null, "RYU": 4.799, "GOUKI": 4.923, "JAMIE": 5.005, "MANON": 4.946, "A.K.I.": 4.881 },
       "RYU": { "Total": 4.953, "MAI": 4.777, "C.VIPER": 4.599, "RASHID": 5.122, "DHALSIM": 4.954, "ELENA": 4.759, "VEGA": 4.977, "SAGAT": 5.021, "CHUN-LI": 4.781, "ALEX": 4.862, "E.HONDA": 5.146, "ED": 4.922, "JP": 4.706, "TERRY": 4.965, "KIMBERLY": 5.037, "ZANGIEF": 5.238, "BLANKA": 5.257, "LILY": 4.971, "CAMMY": 4.742, "DEE JAY": 4.908, "LUKE": 5.005, "MARISA": 4.913, "GUILE": 4.989, "KEN": 5.073, "JURI": 5.169, "RYU": null, "GOUKI": 4.964, "JAMIE": 4.869, "MANON": 5.077, "A.K.I.": 5.019 },
-      "GOUKI": { "Total": 4.952, "MAI": 4.858, "C.VIPER": 4.630, "RASHID": 4.854, "DHALSIM": 4.993, "ELENA": 4.728, "VEGA": 4.148, "SAGAT": 5.092, "CHUN-LI": 4.722, "ALEX": 4.718, "E.HONDA": 4.779, "ED": 5.078, "JP": 5.350, "TERRY": 4.773, "KIMBERLY": 5.195, "ZANGIEF": 5.059, "BLANKA": 5.035, "LILY": 4.928, "CAMMY": 4.576, "DEE JAY": 5.117, "LUKE": 5.100, "MARISA": 4.875, "GUILE": 4.936, "KEN": 5.026, "JURI": 5.070, "RYU": 5.031, "GOUKI": null, "JAMIE": 4.774, "MANON": 5.041, "A.K.I.": 5.138 },
+      "GOUKI": { "Total": 4.952, "MAI": 4.858, "C.VIPER": 4.630, "RASHID": 4.854, "DHALSIM": 4.993, "ELENA": 4.728, "VEGA": 4.148, "SAGAT": 5.092, "CHUN-LI": 4.722, "ALEX": 4.718, "E.HONDA": 4.779, "ED": 5.078, "JP": 5.350, "TERRY": 4.773, "KIMBERLY": 5.195, "ZANGIEF": 5.059, "BLANKA": 5.035, "LILY": 4.928, "CAMMY": 4.576, "DEE JAY": 5.117, "LUKE": 5.100, "MARISA": 4.875, "GUILE": 4.936, "KEN": 5.026, "JURI": 5.070, "RYU": 5.031, "GOUKI": null, "JAMIE": 4.774, "MANON": 5.041, "A.K.I.": null },
       "JAMIE": { "Total": 4.952, "MAI": 4.901, "C.VIPER": 4.761, "RASHID": 5.080, "DHALSIM": 4.756, "ELENA": 4.844, "VEGA": 4.888, "SAGAT": 4.793, "CHUN-LI": 5.086, "ALEX": 4.984, "E.HONDA": 4.841, "ED": 5.019, "JP": 4.981, "TERRY": 4.960, "KIMBERLY": 4.032, "ZANGIEF": 4.891, "BLANKA": 4.641, "LILY": 4.945, "CAMMY": 5.260, "DEE JAY": 4.653, "LUKE": 4.973, "MARISA": 4.938, "GUILE": 4.554, "KEN": 5.209, "JURI": 4.973, "RYU": 5.135, "GOUKI": 5.241, "JAMIE": null, "MANON": 4.942, "A.K.I.": 5.016 },
       "MANON": { "Total": 4.939, "MAI": 4.824, "C.VIPER": 5.039, "RASHID": 5.189, "DHALSIM": 4.561, "ELENA": 4.706, "VEGA": 5.135, "SAGAT": 4.893, "CHUN-LI": 4.774, "ALEX": 4.789, "E.HONDA": 4.867, "ED": 4.678, "JP": 4.895, "TERRY": 4.962, "KIMBERLY": 4.952, "ZANGIEF": 5.112, "BLANKA": 4.889, "LILY": 4.831, "CAMMY": 5.134, "DEE JAY": 5.108, "LUKE": 4.936, "MARISA": 4.996, "GUILE": 5.081, "KEN": 4.817, "JURI": 5.029, "RYU": 4.908, "GOUKI": 4.971, "JAMIE": 5.044, "MANON": null, "A.K.I.": 4.971 },
       "A.K.I.": { "Total": 4.937, "MAI": 5.024, "C.VIPER": 4.869, "RASHID": 4.952, "DHALSIM": 4.879, "ELENA": 4.880, "VEGA": 4.647, "SAGAT": 4.960, "CHUN-LI": 5.016, "ALEX": 4.826, "E.HONDA": 5.077, "ED": 5.147, "JP": 4.683, "TERRY": 4.768, "KIMBERLY": 4.748, "ZANGIEF": 5.034, "BLANKA": 4.872, "LILY": 5.206, "CAMMY": 5.005, "DEE JAY": 5.079, "LUKE": 4.954, "MARISA": 5.048, "GUILE": 4.710, "KEN": 5.010, "JURI": 5.127, "RYU": 5.003, "GOUKI": 4.849, "JAMIE": 4.991, "MANON": 5.063, "A.K.I.": null }
     };
 
-    // アルファベット昇順にキャラクター名をリスト化
     const allCharacters = Object.keys(matrixData).sort();
 
     const charGrid = document.getElementById('charGrid');
@@ -140,7 +139,6 @@
     const scoutRankList = document.getElementById('scoutRankList');
     const dashboardSection = document.getElementById('dashboardSection');
 
-    // 🏗️ キャラクターチェックボックスUIの自動生成
     function initScouter() {
         allCharacters.forEach(char => {
             const label = document.createElement('label');
@@ -150,7 +148,6 @@
                 ${char}
             `;
             
-            // チェックボックス変更時のイベントをバインド
             label.querySelector('input').addEventListener('change', function() {
                 checkLimit(this);
             });
@@ -159,7 +156,6 @@
         });
     }
 
-    // 制限チェック（最大4体まで）＆メイン処理のトリガー
     function checkLimit(checkbox) {
         const checkedBoxes = document.querySelectorAll('input[name="main_chars[]"]:checked');
         const checkedCount = checkedBoxes.length;
@@ -178,7 +174,6 @@
 
         if (checkedCount > 0) {
             dashboardSection.style.display = 'grid';
-            // 選択されたキャラ名を配列化
             const selectedMainChars = Array.from(checkedBoxes).map(cb => cb.value);
             runScoutSimulation(selectedMainChars);
         } else {
@@ -186,7 +181,6 @@
         }
     }
 
-    // 選択されたボタンにデザイン用クラスを付与
     function updateLabels() {
         document.querySelectorAll('input[name="main_chars[]"]').forEach(cb => {
             if (cb.checked) {
@@ -197,12 +191,10 @@
         });
     }
 
-    // 🧠 【コアロジック】天敵の割り出し ＆ サブ候補のリアルタイム総当たりシミュレーション
     function runScoutSimulation(selectedMainChars) {
         const currentCoverage = {};
         const weakOpps = {};
 
-        // 1. 現チームでの各相手に対する最高勝率の算出
         allCharacters.forEach(opp => {
             let bestCurrentRate = 0.0;
             let hasData = false;
@@ -217,24 +209,20 @@
                 }
             });
 
-            // データが一度も引っかからなかった対面は五分（5.000）とする
             currentCoverage[opp] = hasData ? bestCurrentRate : 5.000;
 
-            // チーム全員を合わせても勝率5.0未満の相手を「天敵」に認定
-            if (currentCoverage[opp] < 5.000) {
+            // 🌟 【修正】天敵判定の境界を「5.000未満」から「4.950未満」へ引き下げ
+            if (currentCoverage[opp] < 4.950) {
                 weakOpps[opp] = currentCoverage[opp];
             }
         });
 
-        // 📝 天敵リスト枠の描画更新
         renderWeakList(weakOpps);
 
-        // 2. サブキャラ候補の総当たりスコアリング
         const recommendedSubs = [];
         const weakOppNames = Object.keys(weakOpps);
 
         allCharacters.forEach(candidateChar => {
-            // 既にメイン手札にいるキャラは当然スキップ
             if (selectedMainChars.includes(candidateChar)) return;
 
             let improvedWeakCount = 0;
@@ -246,10 +234,9 @@
                 const candidateRate = (matrixData[candidateChar]?.[opp] !== undefined && matrixData[candidateChar]?.[opp] !== null) 
                                       ? matrixData[candidateChar][opp] : 5.000;
 
-                // 現チームが苦手（5.0未満）としている相手への処理
-                if (currentRate < 5.000) {
-                    // 追加候補キャラ単体で勝率5.0以上に反転（撃破）できるか
-                    if (candidateRate >= 5.000) {
+                // 🌟 【修正】4.950未満の本当の天敵だけを補完・シミュレーションの対象にする
+                if (currentRate < 4.950) {
+                    if (candidateRate >= 4.950) {
                         improvedWeakCount++;
                         coveredDetails[opp] = candidateRate;
                     }
@@ -268,7 +255,6 @@
             });
         });
 
-        // 3. 【ソート】①天敵撃破数が多い順 ➔ ②天敵への平均勝率が高い順
         recommendedSubs.sort((a, b) => {
             if (b.overcome_count !== a.overcome_count) {
                 return b.overcome_count - a.overcome_count;
@@ -276,15 +262,13 @@
             return b.weak_win_rate_avg - a.weak_win_rate_avg;
         });
 
-        // 📝 スカウト結果の描画更新（上位5体）
         renderScoutRank(recommendedSubs.slice(0, 5), weakOppNames.length);
     }
 
-    // 左側の天敵枠をDOM生成
     function renderWeakList(weakOpps) {
         const oppNames = Object.keys(weakOpps);
         if (oppNames.length === 0) {
-            weakList.innerHTML = `<p style="color: #48bb78; font-weight: bold; font-size: 13px; margin: 5px 0;">🎉 完璧な布陣！全員5.0以上でカバー可能です。</p>`;
+            weakList.innerHTML = `<p style="color: #48bb78; font-weight: bold; font-size: 13px; margin: 5px 0;">🎉 完璧な布陣！全員4.950以上でカバー可能です。</p>`;
             return;
         }
 
@@ -300,10 +284,9 @@
         weakList.innerHTML = html;
     }
 
-    // 右側のスカウトカードをDOM生成
     function renderScoutRank(displaySubs, totalWeakCount) {
         if (totalWeakCount === 0) {
-            scoutRankList.innerHTML = `<p class="status-box" style="background:#141622; padding:12px; border-radius:6px; border:1px solid #2d3748;">現在苦手なキャラがいないため、補完用サブの追加は不要です！地力の高い強キャラをお好みで選んでください。</p>`;
+            scoutRankList.innerHTML = `<p class="status-box" style="background:#141622; padding:12px; border-radius:6px; border:1px solid #2d3748;">現在ガチ天敵（4.95未満）がいないため、これ以上の補完用サブ追加は不要です！地力の高い強キャラをお好みで選んでください。</p>`;
             return;
         }
 
@@ -320,7 +303,7 @@
             if (sub.overcome_count > 0) {
                 enemyDetailsHTML += `
                     <div class="covered-enemies">
-                        <strong>【役割対象（5.000以上）に変える相手】</strong><br>
+                        <strong>【役割対象（4.950以上）に変える相手】</strong><br>
                 `;
                 coveredEnemies.forEach(opp => {
                     enemyDetailsHTML += `vs ${opp} ➔ <span class="text-win">${sub.covered_details[opp].toFixed(3)}</span><br>`;
@@ -329,7 +312,7 @@
             } else {
                 enemyDetailsHTML += `
                     <div class="covered-enemies" style="color: #718096;">
-                        ※勝率5.0以上の反撃は不可ですが、チーム全体のマイナスを一番和らげる候補です（天敵平均勝率: ${sub.weak_win_rate_avg.toFixed(3)}）
+                        ※勝率4.95以上の反撃は不可ですが、チーム全体のマイナスを一番和らげる候補です（天敵平均勝率: ${sub.weak_win_rate_avg.toFixed(3)}）
                     </div>
                 `;
             }
@@ -355,7 +338,6 @@
         scoutRankList.innerHTML = html;
     }
 
-    // アプリ初期化実行
     initScouter();
 </script>
 
